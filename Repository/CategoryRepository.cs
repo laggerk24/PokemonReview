@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PokemonReview.Data;
+﻿using PokemonReview.Data;
 using PokemonReview.Interfaces;
 using PokemonReview.Models;
 
@@ -19,6 +18,12 @@ namespace PokemonReview.Repository
             return _context.Categories.Any(p => p.Id == categoryId);
         }
 
+        public bool CreateCategory(Category category)
+        {
+            _context.Add(category);
+            return Save();
+        }
+
         public ICollection<Category> GetCategories()
         {
             return _context.Categories.OrderBy(p => p.Id).ToList();
@@ -31,7 +36,13 @@ namespace PokemonReview.Repository
 
         public ICollection<Pokemon> GetPokemonByCategory(int categoryId)
         {
-            return _context.PokemonCategories.Where(p=>p.Id== categoryId).Select(c=>c.Pokemon).ToList();
+            return _context.PokemonCategories.Where(p=>p.CategoryId== categoryId).Select(c=>c.Pokemon).ToList();
+        }
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved>0?true:false;
+
         }
     }
 }

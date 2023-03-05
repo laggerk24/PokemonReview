@@ -22,6 +22,7 @@ namespace PokemonReview.Controllers
         }
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(ICollection<Pokemon>))]
+        [ProducesResponseType(400)]
         public IActionResult GetPokemons()
         {
             var pokemons = _mapper.Map<List<PokemonDto>>(_pokemonRepository.GetPokemons());
@@ -69,6 +70,7 @@ namespace PokemonReview.Controllers
 
             return Ok(rating);  
         }
+
 
 
 
