@@ -9,6 +9,7 @@ namespace PokemonReview.Mappper
         public MappingProfiles() 
         {
             CreateMap<Pokemon, PokemonDto>();
+            CreateMap<PokemonDto, Pokemon>();
             CreateMap<Category, CategoryDto>();
             CreateMap<CategoryDto, Category>();
             CreateMap<Country, CountryDto>();
@@ -17,6 +18,7 @@ namespace PokemonReview.Mappper
             CreateMap<OwnerDto, Owner>();   
             CreateMap<Review,ReviewDto>();
             CreateMap<Reviewer,ReviewerDto>();
+            
         }
     }
 }
