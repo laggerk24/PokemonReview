@@ -19,6 +19,12 @@ namespace PokemonReview.Repository
             return Save();
         }
 
+        public bool DeleteOwner(Owner owner)
+        {
+            _dataContext.Remove(owner);
+            return Save();
+        }
+
         public Owner GetOwnerById(int ownerId)
         {
             return _dataContext.Owners.Where(o => o.Id == ownerId).FirstOrDefault();
@@ -49,6 +55,12 @@ namespace PokemonReview.Repository
         {
             var saved = _dataContext.SaveChanges();
             return saved > 0 ? true : false;
+        }
+
+        public bool UpdateOwner(Owner owner)
+        {
+            _dataContext.Update(owner);
+            return Save();
         }
     }
 }

@@ -108,6 +108,51 @@ namespace PokemonReview.Controllers
             }
             return Ok("Successfully Added");
         }
+        [HttpPut("{ownerId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult UpdateOwner(int ownerId, [FromBody] OwnerDto updatedOwner)
+        {
+            if (updatedOwner == null)
+                return BadRequest(ModelState);
+            if (ownerId != updatedOwner.Id)
+                return BadRequest(ModelState);
+            if (!_ownerRepository.OwnersExist(ownerId))
+                return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest();
+            var ownerMap = _mapper.Map<Owner>(updatedOwner);
+            if (!_ownerRepository.UpdateOwner(ownerMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while Updating");
+                return StatusCode(500, ModelState);
+
+            }
+            return Ok(ownerMap);
+        }
+        [HttpDelete("{ownerId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeleteOwner(int ownerId)
+        {
+            if (!_ownerRepository.OwnersExist(ownerId))
+            {
+                return NotFound();
+            }
+
+            var ownerToDelete = _ownerRepository.GetOwner(ownerId);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_ownerRepository.DeleteOwner(ownerToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting owner");
+            }
+
+            return NoContent();
+        }
 
 
 

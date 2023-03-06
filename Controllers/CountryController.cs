@@ -109,6 +109,51 @@ namespace PokemonReview.Controllers
             }
             return Ok("Successfully Added");
         }
+        [HttpPut("{countryId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult UpdateCountry(int countryId, [FromBody] CountryDto updateCountry)
+        {
+            if (updateCountry == null)
+                return BadRequest(ModelState);
+            if (countryId != updateCountry.Id)
+                return BadRequest(ModelState);
+            if (!_countryRepository.CountryExists(countryId))
+                return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest();
+            var countryMap = _mapper.Map<Country>(updateCountry);
+            if (!_countryRepository.UpdateCountry(countryMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while Updating");
+                return StatusCode(500, ModelState);
+
+            }
+            return Ok(countryMap);
+        }
+        [HttpDelete("{countryId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeleteCountry(int countryId)
+        {
+            if (!_countryRepository.CountryExists(countryId))
+            {
+                return NotFound();
+            }
+
+            var countryToDelete = _countryRepository.GetCountry(countryId);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_countryRepository.DeleteCountry(countryToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting category");
+            }
+
+            return NoContent();
+        }
 
 
 

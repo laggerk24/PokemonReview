@@ -13,11 +13,21 @@ namespace PokemonReview.Controllers
     public class PokemonController : Controller
     {
         private readonly IPokemonRepository _pokemonRepository;
+        private readonly IOwnerRepository _ownerRepository;
+        private readonly IReviewerRepository _reviewerRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IMapper _mapper;
 
-        public PokemonController(IPokemonRepository pokemonRepository,IMapper mapper)
+        public PokemonController(IPokemonRepository pokemonRepository,
+            IOwnerRepository ownerRepository,
+            IReviewerRepository reviewerRepository,
+            IReviewRepository reviewRepository,
+            IMapper mapper)
         {
             _pokemonRepository = pokemonRepository;
+            _ownerRepository = ownerRepository;
+            _reviewerRepository = reviewerRepository;
+            _reviewRepository = reviewRepository;
             _mapper = mapper;
         }
         [HttpGet]
@@ -103,7 +113,64 @@ namespace PokemonReview.Controllers
 
             }
             return Ok("Successfully Added");
+
         }
+        [HttpPut("{pokeId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult UpdateCategory(int pokeId, 
+            [FromQuery]int ownerId, 
+            [FromQuery]int catId, 
+            [FromBody] PokemonDto updatePokemon)
+        {
+            if (updatePokemon == null)
+                return BadRequest(ModelState);
+            if (pokeId != updatePokemon.Id)
+                return BadRequest(ModelState);
+            if (!_pokemonRepository.PokemonExists(pokeId))
+                return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest();
+            var pokemonMap = _mapper.Map<Pokemon>(updatePokemon);
+
+            if (!_pokemonRepository.UpdatePokemon(ownerId,catId,pokemonMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while Updating");
+                return StatusCode(500, ModelState);
+
+            }
+            return Ok(pokemonMap);
+        }
+        [HttpDelete("{pokeId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeletePokemon(int pokeId)
+        {
+            if (!_pokemonRepository.PokemonExists(pokeId))
+            {
+                return NotFound();
+            }
+
+            var reviewsToDelete = _reviewRepository.GetReviewsOfAPokemon(pokeId);
+            var pokemonToDelete = _pokemonRepository.GetPokemon(pokeId);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_reviewRepository.DeleteReviews(reviewsToDelete.ToList()))
+            {
+                ModelState.AddModelError("", "Something went wrong when deleting reviews");
+            }
+
+            if (!_pokemonRepository.DeletePokemon(pokemonToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting owner");
+            }
+
+            return NoContent();
+        }
+
 
 
 

@@ -15,7 +15,7 @@ namespace PokemonReview.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
 
-        public CategoriesController(ICategoryRepository categoryRepository,IMapper mapper) 
+        public CategoriesController(ICategoryRepository categoryRepository, IMapper mapper)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
@@ -25,7 +25,7 @@ namespace PokemonReview.Controllers
         public IActionResult GetAllCategories()
         {
             var categories = _mapper.Map<List<CategoryDto>>(_categoryRepository.GetCategories());
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
@@ -57,11 +57,11 @@ namespace PokemonReview.Controllers
         public IActionResult GetPokemonByCategoryId(int catId)
         {
             var pokemons = _mapper.Map<List<PokemonDto>>(_categoryRepository.GetPokemonByCategory(catId));
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            if(pokemons==null)
+            if (pokemons == null)
                 return NotFound();
-            return Ok(pokemons);    
+            return Ok(pokemons);
 
         }
         [HttpPost]
@@ -73,7 +73,7 @@ namespace PokemonReview.Controllers
                 return BadRequest(ModelState);
 
             var category = _categoryRepository.GetCategories()
-                .Where(c=>c.Name.Trim().ToUpper()==categoryCreate.Name.TrimEnd().ToUpper())
+                .Where(c => c.Name.Trim().ToUpper() == categoryCreate.Name.TrimEnd().ToUpper())
                 .FirstOrDefault();
 
             if (category != null)
@@ -84,8 +84,8 @@ namespace PokemonReview.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-               
-                
+
+
 
             var categoryMap = _mapper.Map<Category>(categoryCreate);
             if (!_categoryRepository.CreateCategory(categoryMap))
@@ -96,6 +96,52 @@ namespace PokemonReview.Controllers
             }
             return Ok("Successfully Added");
         }
+        [HttpPut("{catId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult UpdateCategory(int catId,[FromBody] CategoryDto updateCategory) 
+        {
+            if (updateCategory == null)
+                return BadRequest(ModelState);
+            if (catId != updateCategory.Id)
+                return BadRequest(ModelState);
+            if(!_categoryRepository.CategoryExists(catId))
+                return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest();
+            var categoryMap = _mapper.Map<Category>(updateCategory);
+            if (!_categoryRepository.UpdateCategory(categoryMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while Updating");
+                return StatusCode(500,ModelState);
+
+            }
+            return Ok(categoryMap);
+        }
+        [HttpDelete("{categoryId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeleteCategory(int categoryId)
+        {
+            if (!_categoryRepository.CategoryExists(categoryId))
+            {
+                return NotFound();
+            }
+
+            var categoryToDelete = _categoryRepository.GetCategory(categoryId);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_categoryRepository.DeleteCategory(categoryToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting category");
+            }
+
+            return NoContent();
+        }
+
 
 
 
